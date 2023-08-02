@@ -1,0 +1,18 @@
+CREATE TRIGGER dbo.TR_Basket_insert_update
+ON dbo.Basket
+AFTER INSERT, UPDATE
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	UPDATE B
+	SET DiscountValue = CASE WHEN SKUCount >= 2 THEN Value * 0.05 ELSE 0 END
+
+	FROM dbo.Basket AS B
+	JOIN (
+		SELECT ID_SKU, COUNT(*) AS SKUCount
+		FROM inserted
+		GROUP BY ID_SKU) AS I
+		ON B.ID_SKU = I.ID_SKU
+		WHERE B.ID IN (SELECT ID FROM inserted);
+END;
